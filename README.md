@@ -1,6 +1,6 @@
 # zig_timer
 
-# Usage
+## Usage
 
 `
 zig build
