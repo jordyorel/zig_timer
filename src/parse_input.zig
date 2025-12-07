@@ -15,6 +15,12 @@ pub const Duration = struct {
         var current: u64 = 0;
         var i: usize = 0;
 
+        while (i < input.len and input[i] == ' ') {
+            i += 1;
+        }
+
+        var has_any_unit = false;
+
         while (i < input.len) {
             const c = input[i];
             i += 1;
@@ -45,14 +51,19 @@ pub const Duration = struct {
                     current = 0;
                 },
                 ' ' => {},
-                else => return error.InvalidFormat,
+                else => return ParseError.InvalidFormat,
             }
         }
 
         if (current != 0) {
-            total += current;
+            has_any_unit = true;
+            const total_res = @addWithOverflow(current, total);
+            if (total_res[1] != 0) return ParseError.Overflow;
+            total = total_res[0];
         }
-        if (total == 0) return error.ZeroDuration;
+        if (!has_any_unit or  total == 0) {
+            return ParseError.ZeroDuration;
+        }
         return Duration{ .total_seconds = total };
     }
 
