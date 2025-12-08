@@ -15,7 +15,7 @@ pub const Duration = struct {
         var current: u64 = 0;
         var i: usize = 0;
 
-        while (i < input.len and input[i] == ' ') {
+        while (i < input.len and std.ascii.isWhitespace(input[i])) {
             i += 1;
         }
 
@@ -37,6 +37,7 @@ pub const Duration = struct {
                 },
                 'h', 'm', 's' => {
                     if (current == 0) return ParseError.UnitMissing;
+                    has_any_unit = true;
                     const multiplier: u64 = switch (c) {
                         'h' => 3600,
                         'm' => 60,
@@ -50,13 +51,16 @@ pub const Duration = struct {
                     total = total_res[0];
                     current = 0;
                 },
-                ' ' => {},
-                else => return ParseError.InvalidFormat,
+                else => {
+                    if (std.ascii.isWhitespace(c)) {
+                        continue;
+                    }
+                    return ParseError.InvalidFormat;
+                },
             }
         }
 
         if (current != 0) {
-            has_any_unit = true;
             const total_res = @addWithOverflow(current, total);
             if (total_res[1] != 0) return ParseError.Overflow;
             total = total_res[0];
